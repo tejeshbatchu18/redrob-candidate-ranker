@@ -1,10 +1,12 @@
-# --- Core (required; rank.py runs end-to-end with just these, no network) ---
+# Core dependencies
 numpy>=1.24
+pandas>=2.0
 scikit-learn>=1.3
 rank-bm25>=0.2.2
 
-# --- Optional: best-quality semantic path (run precompute.py once, offline) ---
-# Install these to enable precomputed sentence-transformer + FAISS embeddings.
-# rank.py automatically falls back to TF-IDF if they are absent.
-# sentence-transformers>=2.2
-# faiss-cpu>=1.7
+# Optional semantic retrieval
+sentence-transformers>=2.2
+faiss-cpu>=1.7
+
+# Demo UI
+gradio>=4.0

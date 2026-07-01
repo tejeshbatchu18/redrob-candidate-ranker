@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+data/artifacts/
+*.log
+audit.jsonl
+# keep submission.csv out of version control; it's a generated artifact
+submission.csv
+.DS_Store
+.venv/

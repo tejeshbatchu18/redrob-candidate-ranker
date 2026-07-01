@@ -1,0 +1,75 @@
+# Redrob Hackathon — Submission Metadata
+# Intelligent Candidate Discovery & Ranking Challenge
+
+team_name: "Attention Heads"
+
+primary_contact:
+  name: "B. Tejesh"
+  email: "primary@example.com"      # <-- update before submitting
+  phone: "+91-XXXXXXXXXX"           # <-- update before submitting
+
+team_members:
+  - name: "B. Tejesh"
+    email: "primary@example.com"    # <-- update
+    role: "Team Lead"
+
+# ============================================================================
+# Code and reproducibility
+# ============================================================================
+github_repo: "https://github.com/YOUR_USERNAME/redrob-candidate-ranker"   # <-- update
+sandbox_link: "https://huggingface.co/spaces/YOUR_USERNAME/redrob-ranker" # <-- update
+reproduce_command: "python rank.py --candidates ./candidates.jsonl --out ./submission.csv"
+
+# ============================================================================
+# Compute environment
+# ============================================================================
+compute:
+  platform: "Local CPU box"
+  cpu_cores: 8
+  ram_gb: 16
+  python_version: "3.11"
+  os: "Ubuntu 22.04 LTS"
+  uses_gpu_for_inference: false        # rank.py is CPU-only
+  has_network_during_ranking: false    # rank.py makes no network calls
+  pre_computation_required: false      # optional: precompute.py upgrades the semantic signal
+  pre_computation_time_minutes: 0      # ~ a few min on CPU if you run precompute.py
+
+# ============================================================================
+# AI tools declaration (transparency only — declared use is not penalized)
+# ============================================================================
+ai_tools_used:
+  - "Claude"
+
+ai_usage_summary: |
+  Used Claude for architecture discussion, code review, and drafting the
+  approach deck. The ranking logic is rule-based and runs locally; no candidate
+  data is sent to any LLM, and no LLM is called during ranking.
+
+# ============================================================================
+# Approach summary
+# ============================================================================
+methodology_summary: |
+  Hybrid, explainable ranker. The JD is compiled offline into a structured rubric
+  (must-haves, disqualifiers, locations, weights). Candidates pass through hard
+  gates first: honeypots (impossible tenure, expert-skill-with-zero-months) and
+  JD disqualifiers (non-technical title, services-only career, pure research,
+  off-domain) are dropped, not merely scored down. Survivors are scored on six
+  signals — career-history evidence (weighted highest), trust-weighted skill
+  coverage, semantic similarity (precomputed sentence-transformer + FAISS, or a
+  TF-IDF fallback), seniority band, trajectory/loyalty, and location. A per-skill
+  endorsement x duration trust multiplier defuses keyword-stuffers; reading career
+  text rather than the skills list surfaces plain-language strong fits. The fit
+  score is multiplied by a behavioral-availability modifier (response rate,
+  recency, open-to-work) so inactive perfect-on-paper profiles are down-weighted.
+  Every row ships a deterministic, profile-grounded reason (no hallucination).
+  Runs on CPU, no network, in minutes for 100K candidates.
+
+# ============================================================================
+# Declarations
+# ============================================================================
+declarations:
+  read_submission_spec: true
+  code_is_original_work: true
+  no_collusion: true
+  honeypot_check_done: true
+  reproduction_tested: true

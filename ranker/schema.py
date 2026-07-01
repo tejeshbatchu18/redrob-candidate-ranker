@@ -1,10 +1,10 @@
 from datetime import date, datetime
 
-TODAY = date(2025, 1, 1)  # default fallback; overridden from data at rank time
+TODAY = date(2025, 1, 1)  # default fallback
 
 
 def set_reference_date(d):
-    """Set the dataset's 'now' (e.g. max last_active_date) for recency math."""
+    """Set the dataset's reference date."""
     global TODAY
     if isinstance(d, date):
         TODAY = d
@@ -20,12 +20,22 @@ def _d(s):
 
 
 class Candidate:
-    _slots_ = ("raw", "id", "profile", "career", "education", "skills",
-                 "certs", "langs", "sig")
+    __slots__ = (
+        "raw",
+        "id",
+        "profile",
+        "career",
+        "education",
+        "skills",
+        "certs",
+        "langs",
+        "sig",
+    )
 
-    def _init_(self, raw: dict):
+    def __init__(self, raw: dict):
         self.raw = raw
         self.id = raw.get("candidate_id", "")
+
         self.profile = raw.get("profile", {}) or {}
         self.career = raw.get("career_history", []) or []
         self.education = raw.get("education", []) or []
@@ -34,7 +44,7 @@ class Candidate:
         self.langs = raw.get("languages", []) or []
         self.sig = raw.get("redrob_signals", {}) or {}
 
-    # ---- profile ----
+    # ---------- Profile ----------
     @property
     def title(self):
         return (self.profile.get("current_title") or "").strip()
@@ -53,7 +63,11 @@ class Candidate:
 
     @property
     def location(self):
-        return (self.profile.get("location") or "") + " " + (self.profile.get("country") or "")
+        return (
+            (self.profile.get("location") or "")
+            + " "
+            + (self.profile.get("country") or "")
+        ).strip()
 
     @property
     def country(self):
@@ -66,46 +80,80 @@ class Candidate:
         except Exception:
             return 0.0
 
-    # ---- skills ----
+    # ---------- Skills ----------
     def skill_names(self):
-        return [(s.get("name") or "").lower() for s in self.skills if isinstance(s, dict)]
+        return [
+            (s.get("name") or "").lower()
+            for s in self.skills
+            if isinstance(s, dict)
+        ]
 
-    # ---- career ----
+    # ---------- Career ----------
     def career_text(self):
         parts = [self.headline, self.summary]
+
         for r in self.career:
             if isinstance(r, dict):
-                parts += [r.get("title") or "", r.get("company") or "",
-                          r.get("industry") or "", r.get("description") or ""]
+                parts += [
+                    r.get("title") or "",
+                    r.get("company") or "",
+                    r.get("industry") or "",
+                    r.get("description") or "",
+                ]
+
         return " ".join(parts)
 
     def full_text(self):
-        return " ".join([self.title, self.company, self.career_text()] +
-                        self.skill_names())
+        return " ".join(
+            [self.title, self.company, self.career_text()]
+            + self.skill_names()
+        )
 
     def companies(self):
-        return [(r.get("company") or "").lower() for r in self.career if isinstance(r, dict)]
+        return [
+            (r.get("company") or "").lower()
+            for r in self.career
+            if isinstance(r, dict)
+        ]
 
     def industries(self):
         out = [(self.profile.get("current_industry") or "").lower()]
-        out += [(r.get("industry") or "").lower() for r in self.career if isinstance(r, dict)]
+
+        out += [
+            (r.get("industry") or "").lower()
+            for r in self.career
+            if isinstance(r, dict)
+        ]
+
         return out
 
     def total_career_months(self):
-        tot = 0
+        total = 0
+
         for r in self.career:
-            try:
-                tot += int(r.get("duration_months") or 0)
-            except Exception:
-                pass
-        return tot
+            if isinstance(r, dict):
+                try:
+                    total += int(r.get("duration_months") or 0)
+                except Exception:
+                    pass
+
+        return total
 
     def avg_tenure_months(self):
-        durs = [int(r.get("duration_months") or 0) for r in self.career
-                if isinstance(r, dict) and (r.get("duration_months") or 0) > 0]
-        return (sum(durs) / len(durs)) if durs else 0.0
+        durations = []
 
-    # ---- signals ----
+        for r in self.career:
+            if isinstance(r, dict):
+                try:
+                    d = int(r.get("duration_months") or 0)
+                    if d > 0:
+                        durations.append(d)
+                except Exception:
+                    pass
+
+        return sum(durations) / len(durations) if durations else 0.0
+
+    # ---------- Signals ----------
     def s(self, key, default=0):
-        v = self.sig.get(key, default)
-        return v if v is not None else default
+        value = self.sig.get(key, default)
+        return value if value is not None else default
